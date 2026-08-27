@@ -1503,52 +1503,39 @@ components:
       type: string
       enum: [PENDING, AUTHORIZED, CAPTURED, REFUNDED, DECLINED]
 
+    PaymentMethodKind:
+      type: string
+      enum: [CARD, WALLET]
+
     PaymentMethod:
       type: object
-      description: Polymorphic payment instrument, discriminated by the `kind` property.
+      description: >-
+        Payment instrument. The `kind` field selects which group of properties carries data:
+        CARD uses last4, expiry and brand; WALLET uses provider and walletId. Properties of
+        the other group are omitted.
       required: [kind]
       properties:
         kind:
-          type: string
-          enum: [CARD, WALLET]
-      discriminator:
-        propertyName: kind
-        mapping:
-          CARD: '#/components/schemas/CardPaymentMethod'
-          WALLET: '#/components/schemas/WalletPaymentMethod'
-      oneOf:
-        - $ref: '#/components/schemas/CardPaymentMethod'
-        - $ref: '#/components/schemas/WalletPaymentMethod'
-
-    CardPaymentMethod:
-      type: object
-      required: [kind, last4, expiry, brand]
-      properties:
-        kind:
-          type: string
-          enum: [CARD]
+          $ref: '#/components/schemas/PaymentMethodKind'
         last4:
           type: string
+          description: Last four digits of the card, CARD only
           pattern: '^[0-9]{4}$'
         expiry:
           type: string
+          description: Card expiry in MM/YY, CARD only
           pattern: '^(0[1-9]|1[0-2])/[0-9]{2}$'
         brand:
           type: string
+          description: Card scheme, CARD only
           enum: [VISA, MASTERCARD, MIR]
-
-    WalletPaymentMethod:
-      type: object
-      required: [kind, provider, walletId]
-      properties:
-        kind:
-          type: string
-          enum: [WALLET]
         provider:
           type: string
+          description: Wallet provider, WALLET only
           maxLength: 40
         walletId:
           type: string
+          description: Wallet identifier, WALLET only
           maxLength: 64
 
     Payment:

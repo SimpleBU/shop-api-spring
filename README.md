@@ -51,6 +51,21 @@ Spring Security, любая БД. Спецификация написана ру
 (`GlobalExceptionHandler`), `@Scheduled` (`CatalogRefreshJob`), `WebMvcConfigurer`
 (`WebConfig`). Эндпоинтами они не являются.
 
+## Плоские DTO без иерархий типов
+
+В графе типов DTO нет ни одной самоссылки и ни одного цикла: ни поле, ссылающееся на
+собственный тип, ни пара «интерфейс ↔ реализации».
+
+`PaymentMethod` — плоская запись с полем-дискриминатором `kind` (CARD / WALLET) вместо
+sealed-интерфейса с двумя реализациями. Значение `kind` определяет, какая группа полей
+несёт данные, поля другой группы остаются `null`:
+
+* `CARD` — `last4`, `expiry`, `brand`;
+* `WALLET` — `provider`, `walletId`.
+
+Следствие для спецификации: конструкции `oneOf` и `discriminator` в `api/openapi.yaml`
+**отсутствуют** — схема описывает ровно тот плоский объект, который отдаёт и принимает код.
+
 ## Структура
 
 ```
@@ -64,7 +79,7 @@ shop-api-spring/
 ├── tools/verify.py                          сверка спеки, реестра и ground truth
 └── src/main/java/com/example/shop/
     ├── web/          10 контроллеров + абстрактный базовый класс + интерфейс
-    ├── dto/          DTO-записи с jakarta-валидацией, enum'ы, sealed-иерархия PaymentMethod
+    ├── dto/          DTO-записи с jakarta-валидацией и enum'ами, без иерархий типов
     ├── service/      in-memory сервисы
     ├── model/        внутренние типы (аудит, резервы склада, генератор id)
     ├── config/       WebConfig, CatalogRefreshJob

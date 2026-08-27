@@ -1,12 +1,12 @@
 package com.example.shop.service;
 
-import com.example.shop.dto.CardPaymentMethod;
 import com.example.shop.dto.Money;
 import com.example.shop.dto.Payment;
+import com.example.shop.dto.PaymentMethod;
+import com.example.shop.dto.PaymentMethodKind;
 import com.example.shop.dto.PaymentRequest;
 import com.example.shop.dto.PaymentStatus;
 import com.example.shop.dto.RefundRequest;
-import com.example.shop.dto.WalletPaymentMethod;
 import com.example.shop.exception.BusinessRuleException;
 import com.example.shop.exception.ResourceNotFoundException;
 import com.example.shop.model.SequenceGenerator;
@@ -28,10 +28,10 @@ public class PaymentService {
     public PaymentService() {
         String first = ids.next();
         payments.put(first, new Payment(first, "ord-5001", PaymentStatus.CAPTURED, Money.rub("12990.00"),
-                new CardPaymentMethod("4242", "12/27", "VISA"), "acq-ref-90001", OffsetDateTime.now()));
+                new PaymentMethod(PaymentMethodKind.CARD, "4242", "12/27", "VISA", null, null), "acq-ref-90001", OffsetDateTime.now()));
         String second = ids.next();
         payments.put(second, new Payment(second, "ord-5002", PaymentStatus.AUTHORIZED, Money.rub("4380.00"),
-                new WalletPaymentMethod("yoomoney", "wallet-88213"), "acq-ref-90002", OffsetDateTime.now()));
+                new PaymentMethod(PaymentMethodKind.WALLET, null, null, null, "yoomoney", "wallet-88213"), "acq-ref-90002", OffsetDateTime.now()));
     }
 
     public List<Payment> findAll(PaymentStatus status, String orderId) {
