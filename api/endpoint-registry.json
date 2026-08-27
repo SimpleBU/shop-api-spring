@@ -1,0 +1,443 @@
+{
+  "project": "shop-api-spring",
+  "framework": "spring-boot-3",
+  "globalPrefix": "/shop",
+  "specFile": "api/openapi.yaml",
+  "specServerBasePaths": [
+    "/shop"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/products",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 37,
+      "declarationStyle": "@RestController + class @RequestMapping, @GetMapping",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/products/{id}",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 47,
+      "declarationStyle": "@GetMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/products",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 52,
+      "declarationStyle": "@PostMapping",
+      "inSpec": true
+    },
+    {
+      "method": "PUT",
+      "path": "/shop/api/v1/products/{id}",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 58,
+      "declarationStyle": "@PutMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/products/{id}",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 64,
+      "declarationStyle": "@DeleteMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "HEAD",
+      "path": "/shop/api/v1/products/{id}/availability",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 70,
+      "declarationStyle": "@RequestMapping(method = RequestMethod.HEAD)",
+      "inSpec": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/products/{id}/price",
+      "controller": "ProductController",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 78,
+      "declarationStyle": "@PatchMapping(\"/{id}/price\")",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/payments",
+      "controller": "PaymentController",
+      "sourceFile": "src/main/java/com/example/shop/web/PaymentController.java",
+      "line": 39,
+      "declarationStyle": "@GetMapping с полным путём, без class-level @RequestMapping",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/payments/{id}",
+      "controller": "PaymentController",
+      "sourceFile": "src/main/java/com/example/shop/web/PaymentController.java",
+      "line": 49,
+      "declarationStyle": "@GetMapping с полным путём, без class-level @RequestMapping",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/payments",
+      "controller": "PaymentController",
+      "sourceFile": "src/main/java/com/example/shop/web/PaymentController.java",
+      "line": 54,
+      "declarationStyle": "@PostMapping с полным путём, без class-level @RequestMapping",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/payments/{id}/refund",
+      "controller": "PaymentController",
+      "sourceFile": "src/main/java/com/example/shop/web/PaymentController.java",
+      "line": 60,
+      "declarationStyle": "@PostMapping с полным путём, без class-level @RequestMapping",
+      "inSpec": true
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/shop/api/v1/payments",
+      "controller": "PaymentController",
+      "sourceFile": "src/main/java/com/example/shop/web/PaymentController.java",
+      "line": 66,
+      "declarationStyle": "@RequestMapping(method = RequestMethod.OPTIONS)",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/orders",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 38,
+      "declarationStyle": "class @RequestMapping + @GetMapping",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/orders/summary",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 48,
+      "declarationStyle": "@GetMapping(headers = \"X-Api-Version=2\")",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/orders/{id}",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 55,
+      "declarationStyle": "@GetMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/orders",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 60,
+      "declarationStyle": "@RequestMapping(method = RequestMethod.POST) — старый стиль",
+      "inSpec": true
+    },
+    {
+      "method": "PUT",
+      "path": "/shop/api/v1/orders/{id}/status",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 66,
+      "declarationStyle": "@RequestMapping(method = {PUT, PATCH})",
+      "inSpec": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/orders/{id}/status",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 66,
+      "declarationStyle": "@RequestMapping(method = {PUT, PATCH})",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/orders/{id}/export",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 72,
+      "declarationStyle": "@RequestMapping(params = \"action=export\", produces = \"application/pdf\")",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/orders/{id}",
+      "controller": "OrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 84,
+      "declarationStyle": "@DeleteMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/legacy/orders",
+      "controller": "LegacyOrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/LegacyOrderController.java",
+      "line": 24,
+      "declarationStyle": "@RequestMapping(value = \"/legacy/orders\", method = RequestMethod.POST)",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v0/orders/{id}",
+      "controller": "LegacyOrderController",
+      "sourceFile": "src/main/java/com/example/shop/web/LegacyOrderController.java",
+      "line": 32,
+      "declarationStyle": "@GetMapping с полным путём",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/carts/{id}",
+      "controller": "CartController",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 29,
+      "declarationStyle": "@Controller + @ResponseBody, @GetMapping({...}) — первый путь массива",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/baskets/{id}",
+      "controller": "CartController",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 29,
+      "declarationStyle": "@Controller + @ResponseBody, @GetMapping({...}) — второй путь массива",
+      "inSpec": false
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/carts/{id}/items",
+      "controller": "CartController",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 35,
+      "declarationStyle": "@Controller + @ResponseBody, @PostMapping",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/carts/{id}/items/{sku}",
+      "controller": "CartController",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 42,
+      "declarationStyle": "@Controller + @ResponseBody, @DeleteMapping",
+      "inSpec": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/carts/{id}",
+      "controller": "CartController",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 48,
+      "declarationStyle": "@Controller + @ResponseBody, @PatchMapping",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/shipments",
+      "controller": "ShipmentController",
+      "sourceFile": "src/main/java/com/example/shop/web/ShipmentController.java",
+      "line": 39,
+      "declarationStyle": "@RequestMapping(ShipmentController.BASE) — путь из константы",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/shipments/{id}",
+      "controller": "ShipmentController",
+      "sourceFile": "src/main/java/com/example/shop/web/ShipmentController.java",
+      "line": 50,
+      "declarationStyle": "константа класса + @GetMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/shipments",
+      "controller": "ShipmentController",
+      "sourceFile": "src/main/java/com/example/shop/web/ShipmentController.java",
+      "line": 55,
+      "declarationStyle": "константа класса + @PostMapping",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/shipments/{id}/documents",
+      "controller": "ShipmentController",
+      "sourceFile": "src/main/java/com/example/shop/web/ShipmentController.java",
+      "line": 61,
+      "declarationStyle": "@PostMapping(consumes = MULTIPART_FORM_DATA_VALUE)",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/shipments/invoices/{number}",
+      "controller": "ShipmentController",
+      "sourceFile": "src/main/java/com/example/shop/web/ShipmentController.java",
+      "line": 71,
+      "declarationStyle": "@GetMapping(\"/invoices/{number:[0-9]{6}}\", produces = \"application/pdf\")",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/promo-codes",
+      "controller": "PromoCodeController",
+      "sourceFile": "src/main/java/com/example/shop/web/AbstractCrudController.java",
+      "line": 20,
+      "declarationStyle": "@GetMapping в абстрактном базовом классе (наследование)",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/promo-codes/{id}",
+      "controller": "PromoCodeController",
+      "sourceFile": "src/main/java/com/example/shop/web/AbstractCrudController.java",
+      "line": 26,
+      "declarationStyle": "@GetMapping(\"/{id}\") в абстрактном базовом классе (наследование)",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/promo-codes/{id}",
+      "controller": "PromoCodeController",
+      "sourceFile": "src/main/java/com/example/shop/web/AbstractCrudController.java",
+      "line": 31,
+      "declarationStyle": "@DeleteMapping(\"/{id}\") в абстрактном базовом классе (наследование)",
+      "inSpec": false
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/promo-codes",
+      "controller": "PromoCodeController",
+      "sourceFile": "src/main/java/com/example/shop/web/PromoCodeController.java",
+      "line": 43,
+      "declarationStyle": "@PostMapping в самом контроллере",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/promo-codes/{code}/redeem",
+      "controller": "PromoCodeController",
+      "sourceFile": "src/main/java/com/example/shop/web/PromoCodeController.java",
+      "line": 49,
+      "declarationStyle": "@PostMapping(\"/{code}/redeem\")",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/reviews",
+      "controller": "ReviewController",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 21,
+      "declarationStyle": "@GetMapping на методе интерфейса ReviewApi",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/reviews/{id}",
+      "controller": "ReviewController",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 27,
+      "declarationStyle": "@GetMapping(\"/{id}\") на методе интерфейса ReviewApi",
+      "inSpec": true
+    },
+    {
+      "method": "POST",
+      "path": "/shop/api/v1/reviews",
+      "controller": "ReviewController",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 30,
+      "declarationStyle": "@PostMapping на методе интерфейса ReviewApi",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/reviews/{id}",
+      "controller": "ReviewController",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 33,
+      "declarationStyle": "@DeleteMapping(\"/{id}\") на методе интерфейса ReviewApi",
+      "inSpec": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/reviews/{id}/moderate",
+      "controller": "ReviewController",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 36,
+      "declarationStyle": "@PatchMapping(\"/{id}/moderate\") на методе интерфейса ReviewApi",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/admin/users",
+      "controller": "AdminUserController",
+      "sourceFile": "src/main/java/com/example/shop/web/AdminUserController.java",
+      "line": 32,
+      "declarationStyle": "class @RequestMapping(\"/admin/users\") + @GetMapping",
+      "inSpec": true
+    },
+    {
+      "method": "GET",
+      "path": "/shop/admin/users/{id}",
+      "controller": "AdminUserController",
+      "sourceFile": "src/main/java/com/example/shop/web/AdminUserController.java",
+      "line": 41,
+      "declarationStyle": "@GetMapping(\"/{id}\")",
+      "inSpec": true
+    },
+    {
+      "method": "PUT",
+      "path": "/shop/admin/users/{id}/role",
+      "controller": "AdminUserController",
+      "sourceFile": "src/main/java/com/example/shop/web/AdminUserController.java",
+      "line": 46,
+      "declarationStyle": "@PutMapping(\"/{id}/role\")",
+      "inSpec": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/admin/users/{id}/purge",
+      "controller": "AdminUserController",
+      "sourceFile": "src/main/java/com/example/shop/web/AdminUserController.java",
+      "line": 54,
+      "declarationStyle": "@DeleteMapping(\"/{id}/purge\")",
+      "inSpec": false
+    },
+    {
+      "method": "GET",
+      "path": "/shop/internal/debug/cache",
+      "controller": "InternalOpsController",
+      "sourceFile": "src/main/java/com/example/shop/web/InternalOpsController.java",
+      "line": 23,
+      "declarationStyle": "@GetMapping с полным путём",
+      "inSpec": false
+    },
+    {
+      "method": "POST",
+      "path": "/shop/internal/webhooks/payment-callback",
+      "controller": "InternalOpsController",
+      "sourceFile": "src/main/java/com/example/shop/web/InternalOpsController.java",
+      "line": 28,
+      "declarationStyle": "@PostMapping с полным путём",
+      "inSpec": false
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /shop
+
+spring:
+  application:
+    name: shop-api-spring
+  jackson:
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+shop:
+  catalog:
+    refresh-cron: "0 */15 * * * *"
+  payments:
+    callback-secret: local-dev-secret

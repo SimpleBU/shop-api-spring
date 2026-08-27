@@ -1,0 +1,1872 @@
+openapi: 3.0.3
+info:
+  title: Shop Public API
+  version: 1.4.0
+  description: |
+    Public and back-office API of the demo shop platform: catalog, carts, orders,
+    payments, shipments, reviews, promo codes and the user back office.
+
+    The document is maintained by hand and is the contract of record for the
+    `shop-api-spring` service. It is intentionally NOT generated from the running
+    application.
+  contact:
+    name: Shop Platform Team
+    email: platform@shop.example.com
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080/shop
+    description: Local developer instance (server.servlet.context-path = /shop)
+  - url: https://api.shop.example.com/shop
+    description: Production
+
+tags:
+  - name: catalog
+    description: Product catalog
+  - name: carts
+    description: Shopping carts
+  - name: orders
+    description: Customer orders
+  - name: payments
+    description: Payment authorization and refunds
+  - name: shipments
+    description: Delivery and shipping documents
+  - name: reviews
+    description: Customer product reviews
+  - name: promo
+    description: Promo codes and redemptions
+  - name: admin
+    description: Back-office user management
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/products:
+    get:
+      operationId: listProducts
+      summary: List catalog products
+      tags: [catalog]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: category
+          in: query
+          required: false
+          description: Filter by product category
+          schema:
+            $ref: '#/components/schemas/ProductCategory'
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive substring match against the product title
+          schema:
+            type: string
+            maxLength: 120
+      responses:
+        '200':
+          description: Page of products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createProduct
+      summary: Create a catalog product
+      tags: [catalog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Product created
+          headers:
+            Location:
+              description: URI of the created product
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/products/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ProductIdParam'
+    get:
+      operationId: getProduct
+      summary: Get a single product
+      tags: [catalog]
+      security: []
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: replaceProduct
+      summary: Replace a product
+      tags: [catalog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '200':
+          description: Product replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteProduct
+      summary: Delete a product
+      tags: [catalog]
+      responses:
+        '204':
+          description: Product deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/products/{id}/availability:
+    head:
+      operationId: checkProductAvailability
+      summary: Probe product stock availability
+      description: Returns 204 when the product has stock left, 404 otherwise. No response body.
+      tags: [catalog]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/ProductIdParam'
+      responses:
+        '204':
+          description: Product is in stock
+          headers:
+            X-Stock-Available:
+              description: Availability flag duplicated as a header
+              schema:
+                type: string
+                enum: ['true', 'false']
+        '404':
+          description: Product is missing or out of stock
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/payments:
+    get:
+      operationId: listPayments
+      summary: List payments
+      tags: [payments]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/PaymentStatus'
+        - name: orderId
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 40
+      responses:
+        '200':
+          description: Page of payments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: authorizePayment
+      summary: Authorize a payment for an order
+      tags: [payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    options:
+      operationId: describePaymentOptions
+      summary: Discover supported payment operations and methods
+      tags: [payments]
+      security: []
+      responses:
+        '200':
+          description: Supported operations
+          headers:
+            Allow:
+              description: Allowed HTTP methods
+              schema:
+                type: string
+            X-Payment-Methods:
+              description: Comma separated list of supported payment method kinds
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/payments/{id}:
+    get:
+      operationId: getPayment
+      summary: Get a single payment
+      tags: [payments]
+      parameters:
+        - $ref: '#/components/parameters/PaymentIdParam'
+      responses:
+        '200':
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/payments/{id}/refund:
+    post:
+      operationId: refundPayment
+      summary: Refund a captured or authorized payment
+      tags: [payments]
+      parameters:
+        - $ref: '#/components/parameters/PaymentIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: Payment refunded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders:
+    get:
+      operationId: listOrders
+      summary: List orders
+      tags: [orders]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+        - name: customerEmail
+          in: query
+          required: false
+          schema:
+            type: string
+            format: email
+            maxLength: 160
+      responses:
+        '200':
+          description: Page of orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createOrder
+      summary: Place a new order
+      tags: [orders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: Order created
+          headers:
+            Location:
+              description: URI of the created order
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/summary:
+    get:
+      operationId: getOrderSummary
+      summary: Aggregated order statistics for a date range
+      description: 'Requires the `X-Api-Version: 2` request header; version 1 clients are not routed here.'
+      tags: [orders]
+      parameters:
+        - name: X-Api-Version
+          in: header
+          required: true
+          description: Contract version selector, must be `2`
+          schema:
+            type: string
+            enum: ['2']
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Order summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/{id}:
+    parameters:
+      - $ref: '#/components/parameters/OrderIdParam'
+    get:
+      operationId: getOrder
+      summary: Get a single order
+      tags: [orders]
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteOrder
+      summary: Delete an order
+      tags: [orders]
+      responses:
+        '204':
+          description: Order deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/{id}/status:
+    put:
+      operationId: updateOrderStatus
+      summary: Move an order to a new status
+      tags: [orders]
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStatusUpdateRequest'
+      responses:
+        '200':
+          description: Order status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/{id}/export:
+    get:
+      operationId: exportOrderInvoice
+      summary: Download the order invoice as PDF
+      tags: [orders]
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+        - name: action
+          in: query
+          required: true
+          description: Discriminating query parameter, must be `export`
+          schema:
+            type: string
+            enum: [export]
+      responses:
+        '200':
+          description: Invoice document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/carts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/CartIdParam'
+    get:
+      operationId: getCart
+      summary: Get a shopping cart
+      tags: [carts]
+      security: []
+      responses:
+        '200':
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: patchCart
+      summary: Update cart owner or promo code
+      tags: [carts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartPatchRequest'
+      responses:
+        '200':
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/carts/{id}/items:
+    post:
+      operationId: addCartItem
+      summary: Add an item to the cart
+      tags: [carts]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CartIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+      responses:
+        '200':
+          description: Cart with the item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/carts/{id}/items/{sku}:
+    delete:
+      operationId: removeCartItem
+      summary: Remove an item from the cart
+      tags: [carts]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CartIdParam'
+        - name: sku
+          in: path
+          required: true
+          description: Stock keeping unit of the item to remove
+          schema:
+            type: string
+            pattern: '^SKU-[0-9]{5}$'
+      responses:
+        '200':
+          description: Cart without the removed item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/shipments:
+    get:
+      operationId: listShipments
+      summary: List shipments
+      tags: [shipments]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ShipmentStatus'
+        - name: carrier
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CDEK, POCHTA, DHL, BOXBERRY]
+      responses:
+        '200':
+          description: Page of shipments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createShipment
+      summary: Create a shipment for an order
+      tags: [shipments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentCreateRequest'
+      responses:
+        '201':
+          description: Shipment created
+          headers:
+            Location:
+              description: URI of the created shipment
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/shipments/{id}:
+    get:
+      operationId: getShipment
+      summary: Get a single shipment
+      tags: [shipments]
+      parameters:
+        - $ref: '#/components/parameters/ShipmentIdParam'
+      responses:
+        '200':
+          description: Shipment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/shipments/{id}/documents:
+    post:
+      operationId: uploadShipmentDocument
+      summary: Attach a scanned document to a shipment
+      tags: [shipments]
+      parameters:
+        - $ref: '#/components/parameters/ShipmentIdParam'
+        - name: kind
+          in: query
+          required: true
+          description: Document kind
+          schema:
+            type: string
+            enum: [WAYBILL, INVOICE, CUSTOMS]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document payload
+      responses:
+        '201':
+          description: Document attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/shipments/invoices/{number}:
+    get:
+      operationId: getShipmentInvoice
+      summary: Render a shipment invoice as PDF
+      tags: [shipments]
+      parameters:
+        - name: number
+          in: path
+          required: true
+          description: Six digit invoice number
+          schema:
+            type: string
+            pattern: '^[0-9]{6}$'
+      responses:
+        '200':
+          description: Invoice document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/promo-codes:
+    get:
+      operationId: listPromoCodes
+      summary: List promo codes
+      tags: [promo]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of promo codes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCodePage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createPromoCode
+      summary: Create a promo code
+      tags: [promo]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoCodeCreateRequest'
+      responses:
+        '201':
+          description: Promo code created
+          headers:
+            Location:
+              description: URI of the created promo code
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/promo-codes/{id}:
+    get:
+      operationId: getPromoCode
+      summary: Get a single promo code
+      tags: [promo]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Promo code technical identifier
+          schema:
+            type: string
+            maxLength: 40
+      responses:
+        '200':
+          description: Promo code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromoCode'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/promo-codes/{code}/redeem:
+    post:
+      operationId: redeemPromoCode
+      summary: Redeem a promo code for an order
+      tags: [promo]
+      security: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Human readable promo code
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{4,16}$'
+        - name: orderId
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 40
+      responses:
+        '200':
+          description: Redemption result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedemptionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/reviews:
+    get:
+      operationId: listReviews
+      summary: List product reviews
+      tags: [reviews]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: productId
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 40
+        - name: minRating
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+      responses:
+        '200':
+          description: Page of reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createReview
+      summary: Publish a new product review
+      tags: [reviews]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+      responses:
+        '201':
+          description: Review accepted for moderation
+          headers:
+            Location:
+              description: URI of the created review
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/reviews/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Review identifier
+        schema:
+          type: string
+          maxLength: 40
+    get:
+      operationId: getReview
+      summary: Get a single review
+      tags: [reviews]
+      security: []
+      responses:
+        '200':
+          description: Review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: deleteReview
+      summary: Delete a review
+      tags: [reviews]
+      responses:
+        '204':
+          description: Review deleted
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/users:
+    get:
+      operationId: listUsers
+      summary: List back-office and customer accounts
+      tags: [admin]
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: role
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/UserRole'
+        - name: blocked
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Page of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/users/{id}:
+    get:
+      operationId: getUser
+      summary: Get a single account
+      tags: [admin]
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /admin/users/{id}/role:
+    put:
+      operationId: changeUserRole
+      summary: Change the role of an account
+      tags: [admin]
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserIdParam'
+        - name: X-Admin-Actor
+          in: header
+          required: false
+          description: Login of the operator performing the change, recorded in the audit trail
+          schema:
+            type: string
+            maxLength: 80
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleUpdateRequest'
+      responses:
+        '200':
+          description: Role changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Customer or operator access token issued by the shop identity provider
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Static back-office key, required for every /admin operation
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      required: false
+      description: Zero based page index
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      description: Page size
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 200
+        default: 20
+    ProductIdParam:
+      name: id
+      in: path
+      required: true
+      description: Product identifier
+      schema:
+        type: string
+        maxLength: 40
+    OrderIdParam:
+      name: id
+      in: path
+      required: true
+      description: Order identifier
+      schema:
+        type: string
+        maxLength: 40
+    PaymentIdParam:
+      name: id
+      in: path
+      required: true
+      description: Payment identifier
+      schema:
+        type: string
+        maxLength: 40
+    CartIdParam:
+      name: id
+      in: path
+      required: true
+      description: Cart identifier
+      schema:
+        type: string
+        maxLength: 40
+    ShipmentIdParam:
+      name: id
+      in: path
+      required: true
+      description: Shipment identifier
+      schema:
+        type: string
+        maxLength: 40
+    UserIdParam:
+      name: id
+      in: path
+      required: true
+      description: User identifier
+      schema:
+        type: string
+        maxLength: 40
+
+  responses:
+    BadRequest:
+      description: The request payload or parameters failed validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The caller is authenticated but not allowed to perform the operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: The requested resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: The operation conflicts with the current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Unexpected server failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+          example: VALIDATION_FAILED
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: array
+          items:
+            type: string
+
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          format: double
+          minimum: 0
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: RUB
+
+    Address:
+      type: object
+      required: [country, city, street, postalCode]
+      properties:
+        country:
+          type: string
+          pattern: '^[A-Z]{2}$'
+        city:
+          type: string
+          maxLength: 80
+        street:
+          type: string
+          maxLength: 160
+        postalCode:
+          type: string
+          pattern: '^[0-9]{6}$'
+
+    ProductCategory:
+      type: string
+      enum: [ELECTRONICS, BOOKS, CLOTHING, GROCERY, HOME]
+
+    Product:
+      type: object
+      required: [id, sku, title, category, price, stock]
+      properties:
+        id:
+          type: string
+        sku:
+          type: string
+          pattern: '^SKU-[0-9]{5}$'
+        title:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        price:
+          $ref: '#/components/schemas/Money'
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+        tags:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 24
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProductRequest:
+      type: object
+      required: [sku, title, category, price]
+      properties:
+        sku:
+          type: string
+          pattern: '^SKU-[0-9]{5}$'
+        title:
+          type: string
+          minLength: 3
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        price:
+          $ref: '#/components/schemas/Money'
+        stock:
+          type: integer
+          format: int32
+          minimum: 0
+        tags:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 24
+
+    ProductPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+
+    OrderStatus:
+      type: string
+      enum: [NEW, PAID, PACKING, SHIPPED, DELIVERED, CANCELLED]
+
+    OrderItem:
+      type: object
+      required: [sku, title, quantity, unitPrice]
+      properties:
+        sku:
+          type: string
+          pattern: '^SKU-[0-9]{5}$'
+        title:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+
+    Order:
+      type: object
+      required: [id, customerEmail, status, items, total]
+      properties:
+        id:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        total:
+          $ref: '#/components/schemas/Money'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        promoCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    OrderCreateRequest:
+      type: object
+      required: [customerEmail, items, shippingAddress]
+      properties:
+        customerEmail:
+          type: string
+          format: email
+          maxLength: 160
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shippingAddress:
+          $ref: '#/components/schemas/Address'
+        promoCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+
+    OrderStatusUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        comment:
+          type: string
+          maxLength: 300
+
+    OrderSummary:
+      type: object
+      required: [ordersCount, revenue]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        ordersCount:
+          type: integer
+          format: int64
+        revenue:
+          $ref: '#/components/schemas/Money'
+        byStatus:
+          type: object
+          description: Order counters keyed by order status
+          additionalProperties:
+            type: integer
+            format: int64
+
+    OrderPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
+
+    CartItem:
+      type: object
+      required: [sku, quantity, unitPrice]
+      properties:
+        sku:
+          type: string
+          pattern: '^SKU-[0-9]{5}$'
+        title:
+          type: string
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99
+        unitPrice:
+          $ref: '#/components/schemas/Money'
+
+    Cart:
+      type: object
+      required: [id, items, subtotal]
+      properties:
+        id:
+          type: string
+        customerEmail:
+          type: string
+          format: email
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          $ref: '#/components/schemas/Money'
+        promoCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+        updatedAt:
+          type: string
+          format: date-time
+
+    CartItemRequest:
+      type: object
+      required: [sku, quantity]
+      properties:
+        sku:
+          type: string
+          pattern: '^SKU-[0-9]{5}$'
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99
+
+    CartPatchRequest:
+      type: object
+      properties:
+        customerEmail:
+          type: string
+          format: email
+          maxLength: 160
+        promoCode:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+
+    PaymentStatus:
+      type: string
+      enum: [PENDING, AUTHORIZED, CAPTURED, REFUNDED, DECLINED]
+
+    PaymentMethod:
+      type: object
+      description: Polymorphic payment instrument, discriminated by the `kind` property.
+      required: [kind]
+      properties:
+        kind:
+          type: string
+          enum: [CARD, WALLET]
+      discriminator:
+        propertyName: kind
+        mapping:
+          CARD: '#/components/schemas/CardPaymentMethod'
+          WALLET: '#/components/schemas/WalletPaymentMethod'
+      oneOf:
+        - $ref: '#/components/schemas/CardPaymentMethod'
+        - $ref: '#/components/schemas/WalletPaymentMethod'
+
+    CardPaymentMethod:
+      type: object
+      required: [kind, last4, expiry, brand]
+      properties:
+        kind:
+          type: string
+          enum: [CARD]
+        last4:
+          type: string
+          pattern: '^[0-9]{4}$'
+        expiry:
+          type: string
+          pattern: '^(0[1-9]|1[0-2])/[0-9]{2}$'
+        brand:
+          type: string
+          enum: [VISA, MASTERCARD, MIR]
+
+    WalletPaymentMethod:
+      type: object
+      required: [kind, provider, walletId]
+      properties:
+        kind:
+          type: string
+          enum: [WALLET]
+        provider:
+          type: string
+          maxLength: 40
+        walletId:
+          type: string
+          maxLength: 64
+
+    Payment:
+      type: object
+      required: [id, orderId, status, amount, method]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        amount:
+          $ref: '#/components/schemas/Money'
+        method:
+          $ref: '#/components/schemas/PaymentMethod'
+        providerReference:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentRequest:
+      type: object
+      required: [orderId, amount, method]
+      properties:
+        orderId:
+          type: string
+          maxLength: 40
+        amount:
+          $ref: '#/components/schemas/Money'
+        method:
+          $ref: '#/components/schemas/PaymentMethod'
+        idempotencyKey:
+          type: string
+          maxLength: 120
+
+    RefundRequest:
+      type: object
+      required: [amount, reason]
+      properties:
+        amount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+          maxLength: 200
+
+    PaymentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Payment'
+
+    ShipmentStatus:
+      type: string
+      enum: [CREATED, HANDED_OVER, IN_TRANSIT, DELIVERED, RETURNED]
+
+    ShipmentDocument:
+      type: object
+      required: [id, kind, fileName, sizeBytes]
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+          enum: [WAYBILL, INVOICE, CUSTOMS]
+        fileName:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+        uploadedAt:
+          type: string
+          format: date-time
+
+    Shipment:
+      type: object
+      required: [id, orderId, carrier, status, destination]
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        carrier:
+          type: string
+          enum: [CDEK, POCHTA, DHL, BOXBERRY]
+        trackingNumber:
+          type: string
+        status:
+          $ref: '#/components/schemas/ShipmentStatus'
+        destination:
+          $ref: '#/components/schemas/Address'
+        estimatedDelivery:
+          type: string
+          format: date
+        documents:
+          type: array
+          description: Nested collection of attached shipping documents
+          items:
+            $ref: '#/components/schemas/ShipmentDocument'
+        createdAt:
+          type: string
+          format: date-time
+
+    ShipmentCreateRequest:
+      type: object
+      required: [orderId, carrier, destination, estimatedDelivery]
+      properties:
+        orderId:
+          type: string
+          maxLength: 40
+        carrier:
+          type: string
+          enum: [CDEK, POCHTA, DHL, BOXBERRY]
+        destination:
+          $ref: '#/components/schemas/Address'
+        estimatedDelivery:
+          type: string
+          format: date
+
+    ShipmentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Shipment'
+
+    Review:
+      type: object
+      required: [id, productId, authorEmail, rating, text, published]
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        authorEmail:
+          type: string
+          format: email
+        rating:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+        text:
+          type: string
+          maxLength: 4000
+        published:
+          type: boolean
+        moderationNote:
+          type: string
+          maxLength: 500
+        createdAt:
+          type: string
+          format: date-time
+
+    ReviewCreateRequest:
+      type: object
+      required: [productId, authorEmail, rating, text]
+      properties:
+        productId:
+          type: string
+          maxLength: 40
+        authorEmail:
+          type: string
+          format: email
+          maxLength: 160
+        rating:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+        text:
+          type: string
+          minLength: 10
+          maxLength: 4000
+
+    ReviewPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+
+    PromoCode:
+      type: object
+      required: [id, code, discountPercent, validFrom, validTo, usageLimit]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+        discountPercent:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 90
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        usageLimit:
+          type: integer
+          format: int32
+        usedCount:
+          type: integer
+          format: int32
+        active:
+          type: boolean
+
+    PromoCodeCreateRequest:
+      type: object
+      required: [code, discountPercent, validFrom, validTo, usageLimit]
+      properties:
+        code:
+          type: string
+          pattern: '^[A-Z0-9]{4,16}$'
+        discountPercent:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 90
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: string
+          format: date
+        usageLimit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100000
+
+    RedemptionResult:
+      type: object
+      required: [code, accepted]
+      properties:
+        code:
+          type: string
+        accepted:
+          type: boolean
+        discountPercent:
+          type: integer
+          format: int32
+        remainingUses:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+    PromoCodePage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/PromoCode'
+
+    UserRole:
+      type: string
+      enum: [CUSTOMER, SUPPORT, MANAGER, ADMIN]
+
+    UserDto:
+      type: object
+      required: [id, email, role]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+          maxLength: 120
+        role:
+          $ref: '#/components/schemas/UserRole'
+        blocked:
+          type: boolean
+        registeredAt:
+          type: string
+          format: date-time
+
+    UserRoleUpdateRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        justification:
+          type: string
+          maxLength: 200
+
+    UserPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [content]
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserDto'

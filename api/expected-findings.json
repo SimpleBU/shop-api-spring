@@ -1,0 +1,141 @@
+{
+  "project": "shop-api-spring",
+  "framework": "spring-boot-3",
+  "language": "java-17",
+  "specFile": "api/openapi.yaml",
+  "globalPrefix": "/shop",
+  "globalPrefixSource": "server.servlet.context-path in src/main/resources/application.yml",
+  "totalEndpointsInCode": 48,
+  "totalEndpointsInSpec": 38,
+  "expectedFindingType": "shadow-api",
+  "expectedZombieEndpoints": 0,
+  "shadowEndpoints": [
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/products/{id}/price",
+      "sourceFile": "src/main/java/com/example/shop/web/ProductController.java",
+      "line": 78,
+      "declarationStyle": "method-level @PatchMapping, class-level @RequestMapping(\"/api/v1/products\")",
+      "category": "hotfix",
+      "difficulty": "easy",
+      "note": "Единственный неописанный метод контроллера, все остальные шесть эндпоинтов ProductController есть в спецификации"
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/orders/{id}/status",
+      "sourceFile": "src/main/java/com/example/shop/web/OrderController.java",
+      "line": 66,
+      "declarationStyle": "@RequestMapping(value = \"/{id}/status\", method = {RequestMethod.PUT, RequestMethod.PATCH})",
+      "category": "second-http-verb",
+      "difficulty": "medium",
+      "note": "Один Java-метод обслуживает два глагола. PUT описан в спецификации, PATCH — нет. Анализатор обязан развернуть массив method в два эндпоинта"
+    },
+    {
+      "method": "POST",
+      "path": "/shop/legacy/orders",
+      "sourceFile": "src/main/java/com/example/shop/web/LegacyOrderController.java",
+      "line": 24,
+      "declarationStyle": "@RequestMapping(value = \"/legacy/orders\", method = RequestMethod.POST), без class-level маппинга",
+      "category": "legacy",
+      "difficulty": "medium",
+      "note": "Старый стиль объявления вместо @PostMapping; путь задан целиком на методе"
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v0/orders/{id}",
+      "sourceFile": "src/main/java/com/example/shop/web/LegacyOrderController.java",
+      "line": 32,
+      "declarationStyle": "method-level @GetMapping с полным путём, без class-level маппинга",
+      "category": "legacy",
+      "difficulty": "easy",
+      "note": "Остаток предыдущей мажорной версии API"
+    },
+    {
+      "method": "GET",
+      "path": "/shop/api/v1/baskets/{id}",
+      "sourceFile": "src/main/java/com/example/shop/web/CartController.java",
+      "line": 29,
+      "declarationStyle": "@GetMapping({\"/carts/{id}\", \"/baskets/{id}\"}) внутри @Controller + @ResponseBody",
+      "category": "second-path-of-array",
+      "difficulty": "medium",
+      "note": "Первый путь массива (/carts/{id}) описан в спецификации, второй — нет. Дополнительно контроллер объявлен как @Controller, а не @RestController"
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/api/v1/promo-codes/{id}",
+      "sourceFile": "src/main/java/com/example/shop/web/AbstractCrudController.java",
+      "line": 31,
+      "declarationStyle": "@DeleteMapping(\"/{id}\") в абстрактном базовом классе AbstractCrudController<T>; конкретный путь даёт @RequestMapping(\"/api/v1/promo-codes\") на PromoCodeController",
+      "category": "inheritance",
+      "difficulty": "hard",
+      "note": "Аннотация и class-level префикс лежат в разных файлах. Два соседних унаследованных метода (GET списка и GET по id) в спецификации есть"
+    },
+    {
+      "method": "PATCH",
+      "path": "/shop/api/v1/reviews/{id}/moderate",
+      "sourceFile": "src/main/java/com/example/shop/web/ReviewApi.java",
+      "line": 36,
+      "declarationStyle": "@PatchMapping(\"/{id}/moderate\") на методе интерфейса ReviewApi; реализация ReviewController аннотаций не имеет",
+      "category": "interface-declared",
+      "difficulty": "hard",
+      "note": "Ни одной HTTP-аннотации в самом @RestController — весь контракт объявлен на интерфейсе"
+    },
+    {
+      "method": "DELETE",
+      "path": "/shop/admin/users/{id}/purge",
+      "sourceFile": "src/main/java/com/example/shop/web/AdminUserController.java",
+      "line": 54,
+      "declarationStyle": "method-level @DeleteMapping, class-level @RequestMapping(\"/admin/users\")",
+      "category": "admin",
+      "difficulty": "easy",
+      "note": "Прямое объявление, должен находиться любым парсером"
+    },
+    {
+      "method": "GET",
+      "path": "/shop/internal/debug/cache",
+      "sourceFile": "src/main/java/com/example/shop/web/InternalOpsController.java",
+      "line": 23,
+      "declarationStyle": "method-level @GetMapping с полным путём, без class-level маппинга",
+      "category": "debug",
+      "difficulty": "easy",
+      "note": "Отладочный эндпоинт, выставляющий внутреннюю статистику кэшей"
+    },
+    {
+      "method": "POST",
+      "path": "/shop/internal/webhooks/payment-callback",
+      "sourceFile": "src/main/java/com/example/shop/web/InternalOpsController.java",
+      "line": 28,
+      "declarationStyle": "method-level @PostMapping с полным путём, без class-level маппинга",
+      "category": "internal-integration",
+      "difficulty": "easy",
+      "note": "Приём колбэка платёжного провайдера, наружу не документирован"
+    }
+  ],
+  "falsePositiveTraps": [
+    {
+      "kind": "@RestControllerAdvice + @ExceptionHandler",
+      "sourceFile": "src/main/java/com/example/shop/exception/GlobalExceptionHandler.java",
+      "note": "Пять методов с @ExceptionHandler. Эндпоинтами не являются, HTTP-путей не имеют"
+    },
+    {
+      "kind": "@Scheduled",
+      "sourceFile": "src/main/java/com/example/shop/config/CatalogRefreshJob.java",
+      "note": "Два метода с @Scheduled (cron и fixedDelay). Не эндпоинты"
+    },
+    {
+      "kind": "WebMvcConfigurer",
+      "sourceFile": "src/main/java/com/example/shop/config/WebConfig.java",
+      "note": "addCorsMappings объявляет паттерн \"/api/**\" — это CORS-правило, а не эндпоинт"
+    },
+    {
+      "kind": "URI-строки в телах методов",
+      "sourceFile": "src/main/java/com/example/shop/web/*.java",
+      "note": "URI.create(\"/api/v1/...\") в заголовках Location — строковые литералы путей, а не объявления маршрутов"
+    },
+    {
+      "kind": "abstract protected методы",
+      "sourceFile": "src/main/java/com/example/shop/web/AbstractCrudController.java",
+      "note": "loadAll/loadOne/removeOne и их реализации в PromoCodeController не аннотированы и эндпоинтами не являются"
+    }
+  ]
+}
